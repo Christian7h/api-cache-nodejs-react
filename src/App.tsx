@@ -77,8 +77,11 @@ function App() {
         const response = await axios.delete(`https://nodejs-express-autos-df92ea4e8677.herokuapp.com/api/cars/${id}`);
         
         if (response.status === 200) {
-          setCars(prevCars => prevCars.filter(car => car._id !== id));
-          fetchCars();
+          setCars(prevCars => prevCars.filter(car => car._id !== id)); // Eliminación local
+          fetchCars();  // Refrescar los autos desde el backend
+  
+          // Hacer un "full refresh" de la página
+          window.location.reload();
         }
       } catch (err: any) {
         const errorMessage = err.response?.data?.error || 'Failed to delete car. Please try again.';
@@ -86,6 +89,7 @@ function App() {
       }
     }
   };
+  
 
   const filteredCars = cars.filter(car =>
     car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
