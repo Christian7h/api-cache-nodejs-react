@@ -19,15 +19,7 @@ function App() {
     horsepower: 0,
     price: 0
   });
-  useEffect(() => {
-    const cachedCars = localStorage.getItem('cars');
-    if (cachedCars) {
-      setCars(JSON.parse(cachedCars));
-      setLoading(false);
-    } else {
-      fetchCars();
-    }
-  }, []);
+
   
   const fetchCars = async () => {
     try {
