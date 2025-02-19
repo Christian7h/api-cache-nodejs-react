@@ -37,7 +37,7 @@ function App() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await fetchCars();
+      window.location.reload();
     } finally {
       setTimeout(() => {
         setIsRefreshing(false);
