@@ -20,20 +20,6 @@ function App() {
     price: 0
   });
 
-  
-  const fetchCars = async () => {
-    try {
-      const response = await axios.get('https://nodejs-express-autos-df92ea4e8677.herokuapp.com/api/cars');
-      setCars(response.data);
-      setLoading(false);
-      setError(null);
-  
-    } catch (err) {
-      setError('Failed to fetch cars. Please try again later.');
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -44,11 +30,45 @@ function App() {
       }, 500); 
     }
   };
-
-  useEffect(() => {
-    fetchCars();
-  }, []);
-
+  const handleDeleteCar = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this car?')) {
+      try {
+        setError(null);
+        
+        // Hacer la eliminación en el backend
+        const response = await axios.delete(`https://nodejs-express-autos-df92ea4e8677.herokuapp.com/api/cars/${id}`);
+        
+        if (response.status === 200) {
+          // Actualizar localmente la lista de autos eliminando el auto correspondiente
+          setCars(prevCars => prevCars.filter(car => car._id !== id));
+  
+          // Refrescar la lista de autos desde el backend, forzando que no se utilice la caché
+          fetchCars();
+        }
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || 'Failed to delete car. Please try again.';
+        setError(errorMessage);
+      }
+    }
+  };
+  
+  const fetchCars = async () => {
+    try {
+      // Forzar que no se utilice la caché del navegador
+      const response = await axios.get('https://nodejs-express-autos-df92ea4e8677.herokuapp.com/api/cars', {
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+      });
+      
+      // Actualizar la lista de autos
+      setCars(response.data);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch cars. Please try again later.');
+      setLoading(false);
+    }
+  };
+  
   const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -62,34 +82,17 @@ function App() {
           horsepower: 0,
           price: 0
         });
-        fetchCars();
+        fetchCars(); // Refrescar los autos después de agregar
         setError(null);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to add car. Please try again.');
     }
   };
-
-  const handleDeleteCar = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this car?')) {
-      try {
-        setError(null);
-        const response = await axios.delete(`https://nodejs-express-autos-df92ea4e8677.herokuapp.com/api/cars/${id}`);
-        
-        if (response.status === 200) {
-          setCars(prevCars => prevCars.filter(car => car._id !== id)); // Eliminación local
-          fetchCars();  // Refrescar los autos desde el backend
   
-          // Hacer un "full refresh" de la página
-          window.location.reload();
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.error || 'Failed to delete car. Please try again.';
-        setError(errorMessage);
-      }
-    }
-  };
-  
+  useEffect(() => {
+    fetchCars(); // Obtener los autos al cargar la página
+  }, []);
 
   const filteredCars = cars.filter(car =>
     car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
